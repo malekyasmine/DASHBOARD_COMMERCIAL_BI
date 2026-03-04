@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Commercial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f14; --surf:#13161e; --surf2:#1a1e2a; --bord:#242836;
+  --gold:#f5a623; --blue:#3b82f6; --green:#10b981;
+  --text:#e8eaf0; --muted:#6b7280; --rad:12px;
+  --fh:'Syne',sans-serif; --fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:14px;line-height:1.6}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:18px}
+.spinner{width:42px;height:42px;border:3px solid var(--bord);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-text{font-family:var(--fh);font-size:.85rem;color:var(--muted)}
+.load-err{text-align:center;color:#f87171;font-size:.85rem;line-height:2;padding:0 20px}
+.load-err code{background:var(--surf2);padding:2px 8px;border-radius:4px;font-size:.8rem}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:200;background:rgba(13,15,20,.96);backdrop-filter:blur(18px);border-bottom:1px solid var(--bord);height:52px;padding:0 28px;display:flex;align-items:center}
+.tab-btn{display:inline-flex;align-items:center;gap:8px;height:52px;padding:0 24px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--fh);font-size:.82rem;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:all .18s;white-space:nowrap}
+.tab-btn .ti{font-size:1rem}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active-v{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-btn.active-a{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-btn.active-m{color:var(--green);border-bottom-color:var(--green)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.live{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.22);padding:3px 11px;border-radius:20px;font-size:.68rem;font-weight:500}
+.live::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);animation:bl 1.8s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
+.meta{font-size:.68rem;color:var(--muted)}
+
+/* PANELS */
+.panel{display:none}.panel.show{display:block}
+.page{max-width:1440px;margin:0 auto;padding:18px 20px 48px}
+
+/* SECTION LABEL */
+.sl{font-family:var(--fh);font-size:.6rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.sl::after{content:'';flex:1;height:1px;background:var(--bord)}
+
+/* KPI */
+.kg{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;margin-bottom:26px}
+@media(max-width:1100px){.kg{grid-template-columns:repeat(3,1fr)}}
+.kc{background:var(--surf);border:1px solid var(--bord);border-radius:var(--rad);padding:15px 17px;position:relative;overflow:hidden;transition:transform .18s,box-shadow .18s}
+.kc:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(0,0,0,.45)}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kc,var(--gold))}
+.kc .ki{font-size:1.1rem;margin-bottom:9px}.kc .kl{font-size:.68rem;color:var(--muted);font-weight:500;margin-bottom:2px}
+.kc .kv{font-family:var(--fh);font-size:1.25rem;font-weight:700;line-height:1.1}.kc .ks{font-size:.66rem;color:var(--muted);margin-top:3px}
+
+/* FILTER PANEL */
+.fp{background:var(--surf);border:1px solid var(--bord);border-radius:var(--rad);padding:19px 21px;margin-bottom:26px}
+.fp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.fp-head h2{font-family:var(--fh);font-size:.83rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.fp-head h2 em{font-style:normal}.em-v{color:var(--gold)}.em-a{color:var(--blue)}.em-m{color:var(--green)}
+.btn-reset{padding:5px 12px;background:transparent;border:1px solid var(--bord);color:var(--muted);border-radius:6px;cursor:pointer;font-size:.7rem;font-family:var(--fb);transition:all .14s}
+.btn-reset:hover{border-color:var(--green);color:var(--green)}
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
+.fg label{display:block;font-size:.65rem;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.fg select,.fg input[type="date"]{width:100%;background:var(--surf2);border:1px solid var(--bord);color:var(--text);border-radius:7px;padding:7px 9px;font-size:.77rem;font-family:var(--fb);appearance:none;-webkit-appearance:none;cursor:pointer;transition:border-color .14s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:25px}
+.fg input[type="date"]{background-image:none;padding-right:9px;color-scheme:dark}
+.fg select:focus,.fg input[type="date"]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,.11)}
+.fp-div{height:1px;background:var(--bord);margin:13px 0}
+.il{font-size:.65rem;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px}
+.ir{display:flex;gap:6px;flex-wrap:wrap}
+.ib{padding:5px 13px;background:var(--surf2);border:1px solid var(--bord);color:var(--muted);border-radius:6px;cursor:pointer;font-size:.7rem;font-family:var(--fb);font-weight:500;transition:all .14s}
+.ib.on-v{background:var(--gold);border-color:var(--gold);color:#000;font-weight:700}
+.ib.on-a{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.ib.on-m{background:var(--green);border-color:var(--green);color:#000;font-weight:700}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}
+.tag{display:inline-flex;align-items:center;gap:4px;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.24);color:var(--gold);padding:2px 9px;border-radius:20px;font-size:.66rem;font-weight:500}
+.tag.blue{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.24);color:var(--blue)}
+.tag.green{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.24);color:var(--green)}
+.tag .rx{cursor:pointer;opacity:.6}.tag .rx:hover{opacity:1}
+
+/* CHARTS */
+.charts{display:flex;flex-direction:column;gap:12px}
+.row{display:grid;gap:12px}
+.r3{grid-template-columns:1fr 1fr 1fr}.r2{grid-template-columns:1fr 1fr}
+.r21{grid-template-columns:2fr 1fr}.r12{grid-template-columns:1fr 2fr}.r1{grid-template-columns:1fr}
+@media(max-width:900px){.r3,.r2,.r21,.r12{grid-template-columns:1fr}}
+.cc{background:var(--surf);border:1px solid var(--bord);border-radius:var(--rad);padding:14px 16px}
+.cw{position:relative;height:260px}
+.cw.short{height:350px}
+.cw.tall{height:300px}
+.ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:13px}
+.ct{font-family:var(--fh);font-size:.78rem;font-weight:700;color:var(--text)}.cs{font-size:.66rem;color:var(--muted);margin-top:2px}
+
+/* TABLES */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.74rem}
+thead th{background:var(--surf2);color:var(--muted);font-size:.63rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;text-align:left;border-bottom:1px solid var(--bord);white-space:nowrap}
+tbody td{padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.035)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.018)}
+.rk{font-family:var(--fh);font-weight:800;color:var(--gold)}
+.rk-b{font-family:var(--fh);font-weight:800;color:var(--blue)}
+.rk-g{font-family:var(--fh);font-weight:800;color:var(--green)}
+.nr{text-align:right;font-family:var(--fh);font-weight:600;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:2px 8px;border-radius:13px;font-size:.65rem;font-weight:600}
+.p-sarl{background:rgba(59,130,246,.14);color:#7dd3fc}.p-eurl{background:rgba(16,185,129,.14);color:#6ee7b7}
+.p-snc{background:rgba(245,166,35,.14);color:#fde68a}.p-slsd{background:rgba(239,68,68,.12);color:#fca5a5}
+.p-slsr{background:rgba(168,85,247,.12);color:#d8b4fe}.p-slsg{background:rgba(20,184,166,.12);color:#5eead4}
+.p-pol{background:rgba(59,130,246,.12);color:#93c5fd}.p-imp{background:rgba(245,166,35,.13);color:#fde68a}
+.p-loc{background:rgba(16,185,129,.13);color:#a7f3d0}.p-ord{background:rgba(139,92,246,.12);color:#c4b5fd}
+.p-pri{background:rgba(16,185,129,.09);color:#a7f3d0}.p-ink{background:rgba(245,166,35,.09);color:#fef3c7}
+.p-sca{background:rgba(244,63,94,.09);color:#fda4af}
+.empty{text-align:center;padding:26px;color:var(--muted);font-size:.8rem}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--surf)}::-webkit-scrollbar-thumb{background:var(--bord);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><div class="load-text">Chargement des données…</div></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="tab-btn active-v" id="btn-v"><span class="ti">📈</span> Ventes</button>
+  <button class="tab-btn" id="btn-a"><span class="ti">🛒</span> Achats</button>
+  <button class="tab-btn" id="btn-m"><span class="ti">💹</span> Marges</button>
+  <div class="topbar-right">
+    <span class="meta" id="tb-meta">—</span>
+    <div class="live">LIVE</div>
+  </div>
+</div>
+
+<!-- ═══════ PANEL VENTES ═══════ -->
+<div id="panel-v" class="panel show"><div class="page">
+  <div class="sl">Statistiques Globales — Ventes</div>
+  <div class="kg" id="v-kpi"></div>
+  <div class="sl">Filtres</div>
+  <div class="fp">
+    <div class="fp-head"><h2><em class="em-v">⚙</em> Paramètres d'analyse — Ventes</h2><button class="btn-reset" id="v-reset" style="border-color:var(--gold)">↺ Réinitialiser</button></div>
+    <div class="fg">
+      <div><label>Période — De</label><input type="date" id="vf-from"></div>
+      <div><label>Période — À</label><input type="date" id="vf-to"></div>
+      <div><label>Produit</label><select id="vf-prod"><option value="">Tous</option></select></div>
+      <div><label>Catégorie</label><select id="vf-cat"><option value="">Tous</option></select></div>
+      <div><label>Client</label><select id="vf-cli"><option value="">Tous</option></select></div>
+      <div><label>Forme Juridique</label><select id="vf-forme"><option value="">Tous</option></select></div>
+      <div><label>Type Vente</label><select id="vf-type"><option value="">Tous</option></select></div>
+      <div><label>Wilaya</label><select id="vf-wil"><option value="">Tous</option></select></div>
+      <div><label>Mois</label><select id="vf-mois"><option value="">Tous</option></select></div>
+      <div><label>Année</label><select id="vf-an"><option value="">Tous</option></select></div>
+    </div>
+    <div class="fp-div"></div>
+    <div class="il">Indicateur principal</div>
+    <div class="ir" id="v-indic">
+      <button class="ib on-v" data-v="MontantTTC">Chiffre d'affaire TTC</button>
+      <button class="ib" data-v="MontantHT">Chiffre d'affaire HT</button>
+      <button class="ib" data-v="Qte">Quantités vendues</button>
+    </div>
+    <div class="tags" id="v-tags"></div>
+  </div>
+  <div class="sl">Analyses &amp; Graphes — Ventes</div>
+  <div class="charts">
+    <div class="row r3">
+      <div class="cc"><div class="ch"><div><div class="ct">Par Catégorie</div><div class="cs" id="vs-cat">—</div></div></div><div class="cw"><canvas id="vch-cat"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Par Wilaya</div><div class="cs" id="vs-wil">—</div></div></div><div class="cw"><canvas id="vch-wil"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Par Type de Vente</div><div class="cs" id="vs-type">—</div></div></div><div class="cw"><canvas id="vch-type"></canvas></div></div>
+    </div>
+    <div class="row r21">
+      <div class="cc"><div class="ch"><div><div class="ct" id="vt-pb">Classement Produits</div><div class="cs">Par indicateur sélectionné</div></div></div><div class="cw"><canvas id="vch-pb"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Répartition Produits</div><div class="cs">Part de marché</div></div></div><div class="cw"><canvas id="vch-pp"></canvas></div></div>
+    </div>
+    <div class="row r12">
+      <div class="cc"><div class="ch"><div><div class="ct">Par Forme Juridique</div><div class="cs">Répartition</div></div></div><div class="cw"><canvas id="vch-fj"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Classement Clients</div><div class="cs">Valeur cumulée</div></div></div><div class="cw"><canvas id="vch-cli"></canvas></div></div>
+    </div>
+    <div class="row r1">
+      <div class="cc"><div class="ch"><div><div class="ct">Évolution Mensuelle</div><div class="cs">Tendance sur la période filtrée</div></div></div><div class="cw short"><canvas id="vch-trend"></canvas></div></div>
+    </div>
+    <div class="row r2">
+      <div class="cc"><div class="ch"><div><div class="ct">📦 Tableau — Produits</div><div class="cs">Classement par indicateur</div></div></div><div class="tw"><table id="vtb-prod"><thead></thead><tbody></tbody></table></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">👥 Tableau — Clients</div><div class="cs">Achats cumulés</div></div></div><div class="tw"><table id="vtb-cli"><thead></thead><tbody></tbody></table></div></div>
+    </div>
+    <div class="row r1">
+      <div class="cc"><div class="ch"><div><div class="ct">📋 Données Brutes — Ventes</div><div class="cs" id="vs-raw">—</div></div></div><div class="tw"><table id="vtb-raw"><thead></thead><tbody></tbody></table></div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ═══════ PANEL ACHATS ═══════ -->
+<div id="panel-a" class="panel"><div class="page">
+  <div class="sl">Statistiques Globales — Achats</div>
+  <div class="kg" id="a-kpi"></div>
+  <div class="sl">Filtres</div>
+  <div class="fp">
+    <div class="fp-head"><h2><em class="em-a">⚙</em> Paramètres d'analyse — Achats</h2><button class="btn-reset" id="a-reset" style="border-color:var(--blue)">↺ Réinitialiser</button></div>
+    <div class="fg">
+      <div><label>Période — De</label><input type="date" id="af-from"></div>
+      <div><label>Période — À</label><input type="date" id="af-to"></div>
+      <div><label>Produit</label><select id="af-prod"><option value="">Tous</option></select></div>
+      <div><label>Catégorie</label><select id="af-cat"><option value="">Tous</option></select></div>
+      <div><label>Fournisseur</label><select id="af-four"><option value="">Tous</option></select></div>
+      <div><label>Type Achat</label><select id="af-type"><option value="">Tous</option></select></div>
+      <div><label>Mois</label><select id="af-mois"><option value="">Tous</option></select></div>
+      <div><label>Année</label><select id="af-an"><option value="">Tous</option></select></div>
+    </div>
+    <div class="fp-div"></div>
+    <div class="il">Indicateur principal</div>
+    <div class="ir" id="a-indic">
+      <button class="ib on-a" data-v="MontantTTC">Coût d'achat TTC</button>
+      <button class="ib" data-v="MontantHT">Coût d'achat HT</button>
+      <button class="ib" data-v="Qte">Quantités achetées</button>
+    </div>
+    <div class="tags" id="a-tags"></div>
+  </div>
+  <div class="sl">Analyses &amp; Graphes — Achats</div>
+  <div class="charts">
+    <div class="row r3">
+      <div class="cc"><div class="ch"><div><div class="ct">Par Catégorie</div><div class="cs" id="as-cat">—</div></div></div><div class="cw"><canvas id="ach-cat"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Par Type d'Achat</div><div class="cs" id="as-type">—</div></div></div><div class="cw"><canvas id="ach-type"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Par Fournisseur</div><div class="cs" id="as-four">—</div></div></div><div class="cw"><canvas id="ach-four"></canvas></div></div>
+    </div>
+    <div class="row r21">
+      <div class="cc"><div class="ch"><div><div class="ct" id="at-pb">Classement Produits</div><div class="cs">Par indicateur sélectionné</div></div></div><div class="cw"><canvas id="ach-pb"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Répartition Produits</div><div class="cs">Part de marché</div></div></div><div class="cw"><canvas id="ach-pp"></canvas></div></div>
+    </div>
+    <div class="row r12">
+      <div class="cc"><div class="ch"><div><div class="ct">Top Fournisseur par Catégorie</div><div class="cs">Coût groupé</div></div></div><div class="cw"><canvas id="ach-four-cat"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Classement Fournisseurs</div><div class="cs">Valeur totale</div></div></div><div class="cw"><canvas id="ach-four-bar"></canvas></div></div>
+    </div>
+    <div class="row r1">
+      <div class="cc"><div class="ch"><div><div class="ct">Évolution Mensuelle des Achats</div><div class="cs">Tendance sur la période filtrée</div></div></div><div class="cw short"><canvas id="ach-trend"></canvas></div></div>
+    </div>
+    <div class="row r2">
+      <div class="cc"><div class="ch"><div><div class="ct">📦 Tableau — Produits Achetés</div><div class="cs">Classement par indicateur</div></div></div><div class="tw"><table id="atb-prod"><thead></thead><tbody></tbody></table></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">🏭 Tableau — Fournisseurs</div><div class="cs">Commandes cumulées</div></div></div><div class="tw"><table id="atb-four"><thead></thead><tbody></tbody></table></div></div>
+    </div>
+    <div class="row r1">
+      <div class="cc"><div class="ch"><div><div class="ct">📋 Données Brutes — Achats</div><div class="cs" id="as-raw">—</div></div></div><div class="tw"><table id="atb-raw"><thead></thead><tbody></tbody></table></div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ═══════ PANEL MARGES ═══════ -->
+<div id="panel-m" class="panel"><div class="page">
+  <div class="sl">Statistiques Globales — Marges (méthode CMUP)</div>
+  <div class="kg" id="m-kpi"></div>
+  <div class="sl">Filtres — Ventes</div>
+  <div class="fp">
+    <div class="fp-head"><h2><em class="em-m">⚙</em> Paramètres d'analyse — Marges</h2><button class="btn-reset" id="m-reset">↺ Réinitialiser</button></div>
+    <div class="fg">
+      <div><label>Période — De</label><input type="date" id="mf-from"></div>
+      <div><label>Période — À</label><input type="date" id="mf-to"></div>
+      <div><label>Produit</label><select id="mf-prod"><option value="">Tous</option></select></div>
+      <div><label>Catégorie</label><select id="mf-cat"><option value="">Tous</option></select></div>
+      <div><label>Wilaya</label><select id="mf-wil"><option value="">Tous</option></select></div>
+      <div><label>Mois</label><select id="mf-mois"><option value="">Tous</option></select></div>
+      <div><label>Année</label><select id="mf-an"><option value="">Tous</option></select></div>
+    </div>
+    <div class="fp-div"></div>
+    <div class="il">Indicateur principal</div>
+    <div class="ir" id="m-indic">
+      <button class="ib on-m" data-v="MargeTotal">Marge Totale HT</button>
+      <button class="ib" data-v="MargeUnitaire">Marge Unitaire HT</button>
+      <button class="ib" data-v="MontantHT">CA HT</button>
+      <button class="ib" data-v="Qte">Quantités vendues</button>
+    </div>
+    <div class="tags" id="m-tags"></div>
+  </div>
+  <div class="sl">Analyses &amp; Graphes — Marges</div>
+  <div class="charts">
+    <div class="row r3">
+      <div class="cc" style="grid-column:span 2"><div class="ch"><div><div class="ct" id="mt-pb">Marge par Produit</div><div class="cs">Par indicateur sélectionné</div></div></div><div class="cw"><canvas id="mch-prod"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Par Catégorie</div><div class="cs" id="ms-cat">—</div></div></div><div class="cw"><canvas id="mch-cat"></canvas></div></div>
+    </div>
+    <div class="row r2">
+      <div class="cc"><div class="ch"><div><div class="ct">Par Wilaya</div><div class="cs" id="ms-wil">—</div></div></div><div class="cw"><canvas id="mch-wil"></canvas></div></div>
+      <div class="cc"><div class="ch"><div><div class="ct">Taux de Marge / CA par Catégorie</div><div class="cs">Marge HT / CA HT (%)</div></div></div><div class="cw"><canvas id="mch-taux"></canvas></div></div>
+    </div>
+    <div class="row r1">
+      <div class="cc"><div class="ch"><div><div class="ct">CA vs Coût (CMUP×Q) vs Marge — par Produit</div><div class="cs">Comparaison HT absolue</div></div></div><div class="cw short"><canvas id="mch-compare"></canvas></div></div>
+    </div>
+    <div class="row r1">
+      <div class="cc"><div class="ch"><div><div class="ct">Évolution Mensuelle de la Marge</div><div class="cs">Tendance sur la période filtrée</div></div></div><div class="cw short"><canvas id="mch-trend"></canvas></div></div>
+    </div>
+    <!-- Détail ventes filtrées -->
+    <div class="row r1">
+      <div class="cc">
+        <div class="ch"><div><div class="ct">📋 Détail Marges — Ventes filtrées</div><div class="cs" id="ms-raw">—</div></div></div>
+        <div class="tw"><table id="mtb-raw"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+    <!-- Tableau consolidé complet Achats + Ventes -->
+    <div class="row r1">
+      <div class="cc">
+        <div class="ch"><div><div class="ct">📊 Tableau Consolidé — Achats &amp; Ventes (CMUP)</div><div class="cs">Reproduction du tableau Excel — toutes opérations</div></div></div>
+        <div class="tw"><table id="mtb-consolidated"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
