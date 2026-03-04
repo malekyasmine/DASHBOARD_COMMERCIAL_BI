@@ -7,7 +7,9 @@ const metaFns = { v: () => getMetaV(), a: () => getMetaA(), m: () => getMetaM() 
 
 async function loadData() {
   const [vR, aR, mR] = await Promise.all([
-    fetch('/vente.csv'), fetch('/achat.csv'), fetch('/merged_data.csv')
+    fetch(import.meta.env.BASE_URL + 'vente.csv'),
+    fetch(import.meta.env.BASE_URL + 'achat.csv'),
+    fetch(import.meta.env.BASE_URL + 'merged_data.csv')
   ]);
   if (!vR.ok) throw new Error('Impossible de charger vente.csv');
   if (!aR.ok) throw new Error('Impossible de charger achat.csv');
